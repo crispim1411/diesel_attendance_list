@@ -1,5 +1,5 @@
 [package]
-name = "diesel_demo"
+name = "diesel_attendance_list"
 version = "0.1.0"
 edition = "2021"
 

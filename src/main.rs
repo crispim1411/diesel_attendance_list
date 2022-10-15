@@ -1,5 +1,5 @@
 use diesel::prelude::*;
-use diesel_demo::*;
+use diesel_attendance_list::*;
 use self::schema::*;
 use self::models::*;
 
