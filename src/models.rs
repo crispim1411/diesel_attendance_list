@@ -1,5 +1,6 @@
 use chrono::NaiveDate;
 use diesel::prelude::*;
+use crate::schema::*;
 
 #[derive(Queryable, Debug)]
 pub struct Event {
@@ -17,4 +18,12 @@ pub struct User {
     pub name: String,
     pub mention: String,
     pub event_id: i32,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = events)]
+pub struct EventForm<'a> {
+    name: &'a str,
+    creator: &'a str,
+    server_id: &'a str,
 }
