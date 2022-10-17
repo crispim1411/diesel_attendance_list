@@ -1,5 +1,5 @@
 # Rust ORM
-Teste utilizando o ORM Diesel para Rust para estabelecer conexão com base de dados PostgreSQL. O banco utilizado é o mesmo do projeto de bot para discord [Attendance List Bot](https://github.com/).
+Teste utilizando o ORM Diesel para Rust para estabelecer conexão com base de dados PostgreSQL. O banco utilizado é o mesmo do projeto de bot para discord [Attendance List Bot](https://github.com/crispim1411/attendance_list).
 
 # Configuração
 Adicionar bibliotecas ao projeto
