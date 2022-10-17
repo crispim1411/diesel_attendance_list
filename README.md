@@ -21,15 +21,22 @@ Chamar o diesel CLI, após isso teremos os esquemas da base de dados salvos em s
 
 # Codificando
 
-## Conexão
-```rust
-fn establish_connection() -> PgConnection {
-    dotenv().ok();
+## Repository Pattern
+O objeto de conexão é armazenado numa struct PostgreSQLRepository e instanciada por outra struct DataSource que por sua vez espera um interface IRepository. O código final possui baixo acoplamento com qual base de dados está sendo utilizada.
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to database"))
+```rust
+pub struct PostgreSQLRepository {
+    connection: PgConnection
+}
+
+pub struct DataSource {
+    repository: Box<dyn IRepository>,
+}
+
+pub trait IRepository {
+    fn get_all_events(&mut self) -> Result<Vec<Event>, DieselError>;
+    fn get_event(&mut self, name: &str) -> Result<Event, DieselError>;
+    fn get_event_in_server(&mut self, name: &str, server_id: &str) -> Result<Event, DieselError>;
 }
 ```
 
@@ -47,15 +54,16 @@ struct Event {
     pub expiration: i32,
 }
 ```
-Função para obter todos os eventos cadastrados
+Função para encontrar um evento através de uma palavra chave em seu atributo nome
 ```rust
-fn get_all_events(connection: &mut PgConnection) -> Vec<Event> {
+fn get_event(&mut self, name: &str) -> Result<Event, DieselError> {
     events::table
-        .load(connection)
-        .expect("Error loading events")
-} 
+        .filter(events::name.like(format!("%{}%", name)))
+        .first(&mut self.connection)
+}
 ```
 
+<!---
 ## Inserção
 Objeto DAO para escrita na base de dados
 ```rust
@@ -76,3 +84,4 @@ fn insert_event(connection: &mut PgConnection, new_event: &EventForm) -> usize {
         .expect("Error saving the event")
 }
 ```
+-->

@@ -1,17 +1,18 @@
 use diesel_attendance_list::*;
 
 fn main() {
-    let mut repository = Repository::new();
+    let mut datasource = DataSource::new();
 
-    let event = repository.get_event("rust", "771935467951489084");
-    let events_list = repository.get_all_events();
-
-    match event {
-        Some(ev) =>println!("Event: {:#?}\n\n", ev),
-        None => println!("Nenhum evento encontrado"),
+    if let Some(event) = datasource.get_event("computador") {
+        println!("Event: {:#?}", event)
     }
-    match events_list {
-        Some(ev) =>println!("Event: {:#?}\n\n", ev),
-        None => println!("Nenhum evento encontrado"),
+    println!("");
+    if let Some(event) = datasource.get_event_in_server("rust", "771935467951489084") {
+        println!("Event: {:#?}", event)
     }
+    println!("");
+    if let Some(event) = datasource.get_event_in_server("rust", "1123141512412423") {
+        println!("Event: {:#?}", event)
+    }
+    println!("");
 }

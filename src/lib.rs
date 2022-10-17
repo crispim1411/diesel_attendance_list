@@ -1,60 +1,47 @@
-use diesel::pg::PgConnection;
-use diesel::prelude::*;
-use dotenv::dotenv;
-use std::env;
-use self::schema::*;
 use self::models::*;
+use self::database::repository::{IRepository, PostgreSQLRepository};
 
+mod database;
 mod models;
-mod schema;
 
-pub trait IRepository {
-    fn get_event(&mut self, name: &str, server_id: &str) -> Option<Event>;
-    // fn insert_event(&mut self, name: &str, creator: &str, server_id: &str);
-    // fn insert_user(&mut self, name: &str, mention: &str, event_name: &str, server_id: &str);
-    fn get_all_events(&mut self) -> Option<Vec<Event>>;
+pub struct DataSource {
+    repository: Box<dyn IRepository>,
 }
 
-pub struct Repository {
-    connection: PgConnection
-}
-
-impl Repository {
+impl DataSource {
     pub fn new() -> Self {
-        Repository { connection: Repository::establish_connection() }   
+        DataSource { repository: Box::new(PostgreSQLRepository::new()) }
     }
 
-    fn establish_connection() -> PgConnection {
-        dotenv().ok();
-    
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        
-        PgConnection::establish(&database_url)
-            .unwrap_or_else(|_| panic!("Error connecting to database"))
-    }
-}
-
-impl IRepository for Repository {
-    fn get_event(&mut self, name: &str, server_id: &str) -> Option<Event> {
-        events::table
-            .filter(events::name.like(format!("%{}%", name)).and(events::server_id.eq(server_id)))
-            .first(&mut self.connection)
-            .ok()
+    pub fn get_all_events(&mut self) -> Option<Vec<Event>> {
+        match self.repository.get_all_events() {
+            Ok(events) => Some(events),
+            Err(err) => {
+                println!("Error getting events: {:?}", err);
+                None
+            }
+        }
     }
 
-    fn get_all_events(&mut self) -> Option<Vec<Event>> {
-        events::table
-            .load(&mut self.connection)
-            .ok()
+    pub fn get_event(&mut self, name: &str) -> Option<Event> {
+        match self.repository.get_event(name) {
+            Ok(event) => Some(event),
+            Err(err) => {
+                println!("Error getting event with name ´{}´: {:?}", name, err);
+                None
+            }
+        }
     }
 
-    // fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) {
-    //     todo!()
-    // }
-
-    // fn insert_user(&mut self, name: &str, mention: &str, event_name: &str, server_id: &str) {
-    //     todo!()
-    // }
+    pub fn get_event_in_server(&mut self, name: &str, server_id: &str) -> Option<Event> {
+        match self.repository.get_event_in_server(name, server_id) {
+            Ok(event) => Some(event),
+            Err(err) => {
+                println!("Error getting event with name ´{}´ in server ´{}´: {:?}", name, server_id, err);
+                None
+            }
+        }
+    }
 }
 
 // fn users_from_event(connection: &mut PgConnection) -> Vec<User> {

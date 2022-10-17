@@ -1,6 +1,6 @@
 use chrono::NaiveDate;
 use diesel::prelude::*;
-use crate::schema::*;
+use crate::database::schema::*;
 
 #[derive(Queryable, Debug)]
 pub struct Event {
