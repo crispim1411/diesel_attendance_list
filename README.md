@@ -63,7 +63,19 @@ fn get_event(&mut self, name: &str) -> Result<Event, DieselError> {
 }
 ```
 
-<!---
+Função intermediária com o núcleo que consume o dado, tratando a resposta dada pela base de dados
+```rust
+fn get_event(&mut self, name: &str) -> Option<Event> {
+    match self.repository.get_event(name) {
+        Ok(event) => Some(event),
+        Err(err) => {
+            println!("Error getting event with name ´{}´: {:?}", name, err);
+            None
+        }
+    }
+}
+```
+
 ## Inserção
 Objeto DAO para escrita na base de dados
 ```rust
@@ -77,11 +89,21 @@ struct EventForm<'a> {
 ```
 Função para cadastrar um novo evento
 ```rust
-fn insert_event(connection: &mut PgConnection, new_event: &EventForm) -> usize {
+fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) -> Result<usize, DieselError> {  
+    let new_event = EventForm { name, creator, server_id };
     diesel::insert_into(events::table)
         .values(new_event)
-        .execute(connection)
-        .expect("Error saving the event")
+        .execute(&mut self.connection)
 }
 ```
--->
+
+Função intermediária com o núcleo que consume o dado, tratando a resposta dada pela base de dados
+```rust
+fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) {
+    match self.repository.insert_event(name, creator, server_id) {
+        Ok(rows_inserted) => println!("Linhas inseridas: {}", rows_inserted),
+        Err(err) => println!("Não foi possível inserir o evento: {}", err)
+    }
+}
+```
+

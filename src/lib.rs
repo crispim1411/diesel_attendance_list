@@ -42,20 +42,50 @@ impl DataSource {
             }
         }
     }
+
+    pub fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) {
+        match self.repository.insert_event(name, creator, server_id) {
+            Ok(rows_inserted) => println!("Linhas inseridas: {}", rows_inserted),
+            Err(err) => println!("Não foi possível inserir o evento: {}", err)
+        }
+    }
+
+    pub fn insert_user_to_event(&mut self, name: &str, mention: &str, event_name: &str) {
+        match self.repository.insert_user_to_event(name, mention, event_name) {
+            Ok(rows_inserted) => println!("Linhas inseridas: {}", rows_inserted),
+            Err(err) => println!(
+                "Não foi possível inserir o usuário ´{}´ no evento ´{}´: {}", mention, event_name, err),
+        }
+    }
+
+    pub fn get_users_event(&mut self, event_name: &str) -> Option<Vec<User>> {
+        match self.repository.get_users_event(event_name) {
+            Ok(users) => Some(users),
+            Err(err) => {
+                println!("Não foi possível listar os usuários do evento ´{}´: {}", event_name, err);
+                None
+            }
+        }
+    }
 }
 
-// fn users_from_event(connection: &mut PgConnection) -> Vec<User> {
-//     users::table
-//         .inner_join(events::table)
-//         .filter(events::name.like("%computador%"))
-//         .select(users::all_columns)
-//         .load(connection)
-//         .expect("Error loading the event")
-// }
 
-// fn insert_event(connection: &mut PgConnection, new_event: &EventForm) -> usize {
-//     diesel::insert_into(events::table)
-//         .values(new_event)
-//         .execute(connection)
-//         .expect("Error saving the event")
-// }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn get_all_events_test() {
+        let mut datasource = DataSource::new();
+        let result = datasource.get_all_events();
+        assert!(result.is_some());
+        assert!(result.unwrap().len() > 0);
+    }
+
+    #[test]
+    fn get_event_test() {
+        let mut datasource = DataSource::new();
+        let result = datasource.get_event("rust");
+        assert!(result.is_some());
+        assert_eq!(result.unwrap().name, String::from("evento rust cargo"));
+    }
+}

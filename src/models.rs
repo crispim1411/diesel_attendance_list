@@ -21,9 +21,17 @@ pub struct User {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = events)]
+#[diesel(table_name=events)]
 pub struct EventForm<'a> {
-    name: &'a str,
-    creator: &'a str,
-    server_id: &'a str,
+    pub name: &'a str,
+    pub creator: &'a str,
+    pub server_id: &'a str,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name=users)]
+pub struct UserForm<'a> {
+    pub name: &'a str,
+    pub mention: &'a str,
+    pub event_id: &'a i32,
 }
