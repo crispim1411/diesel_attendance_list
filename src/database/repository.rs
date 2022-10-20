@@ -60,6 +60,8 @@ impl IRepository for PostgreSQLRepository {
         let new_event = EventForm { name, creator, server_id };
         diesel::insert_into(events::table)
             .values(new_event)
+            .on_conflict(events::name)
+            .do_nothing()
             .execute(&mut self.connection)
     }
 
@@ -72,6 +74,7 @@ impl IRepository for PostgreSQLRepository {
         let user_to_insert = UserForm { name, mention, event_id: &event.id };
         diesel::insert_into(users::table)
             .values(user_to_insert)
+            .on_conflict_do_nothing()
             .execute(&mut self.connection)
     }
 
