@@ -37,6 +37,7 @@ pub trait IRepository {
     fn get_all_events(&mut self) -> Result<Vec<Event>, DieselError>;
     fn get_event(&mut self, name: &str) -> Result<Event, DieselError>;
     fn get_event_in_server(&mut self, name: &str, server_id: &str) -> Result<Event, DieselError>;
+    ...
 }
 ```
 
