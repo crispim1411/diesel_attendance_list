@@ -1,5 +1,5 @@
 # Rust ORM
-Teste utilizando o ORM Diesel para Rust para estabelecer conexão com base de dados PostgreSQL. O banco utilizado é o mesmo do projeto de bot para discord [Attendance List Bot](https://github.com/crispim1411/attendance_list).
+Teste utilizando o ORM Diesel para Rust para estabelecer conexão com base de dados PostgreSQL. Neste estudo foi utilizado a mesma do projeto de bot para discord [Attendance List Bot](https://github.com/crispim1411/attendance_list).
 
 # Configuração
 Adicionar bibliotecas ao projeto
@@ -22,7 +22,7 @@ Chamar o diesel CLI, após isso teremos os esquemas da base de dados salvos em s
 # Codificando
 
 ## Repository Pattern
-O objeto de conexão é armazenado numa struct PostgreSQLRepository e instanciada por outra struct DataSource que por sua vez espera um interface IRepository. O código final possui baixo acoplamento com qual base de dados está sendo utilizada.
+O objeto de conexão é armazenado numa struct PostgreSQLRepository e instanciada por outra struct DataSource que por sua vez espera uma implementação da interface IRepository. O código final possui baixo acoplamento com a forma que a conexão a base de dados foi implementada. 
 
 ```rust
 pub struct PostgreSQLRepository {
@@ -55,7 +55,7 @@ struct Event {
     pub expiration: i32,
 }
 ```
-Função para encontrar um evento através de uma palavra chave em seu atributo nome
+Função interna do repositório
 ```rust
 fn get_event(&mut self, name: &str) -> Result<Event, DieselError> {
     events::table
@@ -64,9 +64,9 @@ fn get_event(&mut self, name: &str) -> Result<Event, DieselError> {
 }
 ```
 
-Função intermediária com o núcleo que consume o dado, tratando a resposta dada pela base de dados
+Função de interface ao repositório
 ```rust
-fn get_event(&mut self, name: &str) -> Option<Event> {
+pub fn get_event(&mut self, name: &str) -> Option<Event> {
     match self.repository.get_event(name) {
         Ok(event) => Some(event),
         Err(err) => {
@@ -88,7 +88,7 @@ struct EventForm<'a> {
     server_id: &'a str,
 }
 ```
-Função para cadastrar um novo evento
+Função do repositório
 ```rust
 fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) -> Result<usize, DieselError> {  
     let new_event = EventForm { name, creator, server_id };
@@ -98,9 +98,9 @@ fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) -> Result
 }
 ```
 
-Função intermediária com o núcleo que consume o dado, tratando a resposta dada pela base de dados
+Função de interface ao repositório
 ```rust
-fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) {
+pub fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) {
     match self.repository.insert_event(name, creator, server_id) {
         Ok(rows_inserted) => println!("Linhas inseridas: {}", rows_inserted),
         Err(err) => println!("Não foi possível inserir o evento: {}", err)
@@ -108,3 +108,25 @@ fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) {
 }
 ```
 
+## Remoção
+Função do repositório
+```rust
+fn delete_event(&mut self, event_id: &i32) -> Result<usize, DieselError> {
+    self.remove_all_users_from_event(event_id)?;
+
+    diesel::delete(events::table)
+        .filter(events::id.eq(event_id))
+        .execute(&mut self.connection)
+}
+```
+
+Função de interface ao repositório
+```rust
+pub fn delete_event(&mut self, event_id: &i32) {
+    match self.repository.delete_event(event_id) {
+        Ok(rows_deleted) => println!("Eventos removidos: {}", rows_deleted),
+        Err(err) => println!(
+            "Não foi possível remover o evento ´{}´: {}", event_id, err),
+    }
+}
+```

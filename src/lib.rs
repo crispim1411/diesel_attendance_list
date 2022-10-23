@@ -13,14 +13,12 @@ impl DataSource {
         DataSource { repository: Box::new(PostgreSQLRepository::new()) }
     }
 
-    pub fn get_all_events(&mut self) -> Option<Vec<Event>> {
+    pub fn get_all_events(&mut self) -> Vec<Event> {
         match self.repository.get_all_events() {
-            Ok(events) => Some(events),
-            Err(err) => {
-                println!("Error getting events: {:?}", err);
-                None
-            }
-        }
+            Ok(events) => { return events },
+            Err(err) => { println!("Error getting events: {:?}", err) },
+        };
+        vec![]
     }
 
     pub fn get_event(&mut self, name: &str) -> Option<Event> {
@@ -43,14 +41,14 @@ impl DataSource {
         }
     }
 
-    pub fn get_users_event(&mut self, event_id: &i32) -> Option<Vec<User>> {
+    pub fn get_users_event(&mut self, event_id: &i32) -> Vec<User> {
         match self.repository.get_users_event(event_id) {
-            Ok(users) => Some(users),
+            Ok(users) => { return users },
             Err(err) => {
                 println!("Não foi possível listar os usuários do evento ´{}´: {}", event_id, err);
-                None
             }
         }
+        vec![]
     }
 
     pub fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) {
@@ -85,8 +83,7 @@ mod tests {
     fn get_all_events_test() {
         let mut datasource = DataSource::new();
         let result = datasource.get_all_events();
-        assert!(result.is_some());
-        assert!(result.unwrap().len() > 0);
+        assert!(result.len() > 0);
     }
 
     #[test]
