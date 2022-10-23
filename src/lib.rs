@@ -43,6 +43,16 @@ impl DataSource {
         }
     }
 
+    pub fn get_users_event(&mut self, event_id: &i32) -> Option<Vec<User>> {
+        match self.repository.get_users_event(event_id) {
+            Ok(users) => Some(users),
+            Err(err) => {
+                println!("Não foi possível listar os usuários do evento ´{}´: {}", event_id, err);
+                None
+            }
+        }
+    }
+
     pub fn insert_event(&mut self, name: &str, creator: &str, server_id: &str) {
         match self.repository.insert_event(name, creator, server_id) {
             Ok(rows_inserted) => println!("Linhas inseridas: {}", rows_inserted),
@@ -50,21 +60,19 @@ impl DataSource {
         }
     }
 
-    pub fn insert_user_to_event(&mut self, name: &str, mention: &str, event_name: &str) {
-        match self.repository.insert_user_to_event(name, mention, event_name) {
-            Ok(rows_inserted) => println!("Linhas inseridas: {}", rows_inserted),
+    pub fn insert_user_to_event(&mut self, name: &str, mention: &str, event_id: &i32) {
+        match self.repository.insert_user_to_event(name, mention, event_id) {
+            Ok(rows_inserted) => println!("Usuários inseridos: {}", rows_inserted),
             Err(err) => println!(
-                "Não foi possível inserir o usuário ´{}´ no evento ´{}´: {}", mention, event_name, err),
+                "Não foi possível inserir o usuário ´{}´ no evento ´{}´: {}", mention, event_id, err),
         }
     }
 
-    pub fn get_users_event(&mut self, event_name: &str) -> Option<Vec<User>> {
-        match self.repository.get_users_event(event_name) {
-            Ok(users) => Some(users),
-            Err(err) => {
-                println!("Não foi possível listar os usuários do evento ´{}´: {}", event_name, err);
-                None
-            }
+    pub fn delete_event(&mut self, event_id: &i32) {
+        match self.repository.delete_event(event_id) {
+            Ok(rows_deleted) => println!("Eventos removidos: {}", rows_deleted),
+            Err(err) => println!(
+                "Não foi possível remover o evento ´{}´: {}", event_id, err),
         }
     }
 }
@@ -87,5 +95,15 @@ mod tests {
         let result = datasource.get_event("rust");
         assert!(result.is_some());
         assert_eq!(result.unwrap().name, String::from("evento rust cargo"));
+    }
+
+    #[test]
+    fn insert_delete_event() {
+        let mut datasource = DataSource::new();
+        datasource.insert_event("evento teste lib insert", "test rust", "<@1234>");
+        let event = datasource.get_event("evento teste lib insert").unwrap();
+        datasource.delete_event(&event.id);
+        let event_removed = datasource.get_event("evento teste lib insert");
+        assert!(event_removed.is_none());
     }
 }
